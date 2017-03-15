@@ -1,0 +1,129 @@
+#!/usr/bin/python3
+import argparse
+import pyowm
+import minfo_settings
+
+
+TIMEOUT = 5
+TEXTWIDTH = 80
+CPU_TEMP_FILE ='/sys/class/thermal/thermal_zone0/temp' 
+WEATHER_CITY = 'shannon,ie'
+WEATHER_CITY_CODE = 3310247
+WEATHER_UNITS = 'metric'
+WEATHER_URL = 'http://api.openweathermap.org/data/2.5/weather'
+WEATHER_OUTPUT = 'Weather: [{}C] [{}deg] [{}kph] [{}] [{} {}]'
+
+
+class WeatherInfo:
+    """
+    Contains weather information retrieved from API
+    """
+    def  __init__(self,
+                  description,
+                  temperature,
+                  wind_direction,
+                  wind_speed,
+                  pressure,
+                  humidity,
+                  sunrise,
+                  sunset):
+
+        self.description = description
+        self.temperature = temperature
+        self.wind_direction = wind_direction
+        self.wind_speed = wind_speed
+        self.pressure = pressure
+        self.humidity = humidity
+        self.sunrise = sunrise
+        self.sunset = sunset
+
+
+class ComputerInfo:
+    """
+    Contains current pc info retrieved from system
+    """
+    def  __init__(self, cpu_temp):
+        self.cpu_temp = cpu_temp
+
+
+def get_args():
+    """
+    Get the command line arguments and return the object containing them
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', action='store_true', help='Show computer info')
+    parser.add_argument('-w', action='store_true', help='Show weather')
+    return parser.parse_args()
+
+
+def get_computer_info():
+    """
+    Retrieve info about the machine.
+    """
+    with open(CPU_TEMP_FILE, 'r') as f:
+        cpu_temp = f.read() 
+    if cpu_temp:
+        cpu_temp = int(cpu_temp) / 1000
+    else:
+        cpu_temp = 'Unknown'
+
+    comp_info = ComputerInfo(cpu_temp)
+    return comp_info
+
+
+def get_weather():
+    """
+    Get current weather info from api.
+    """
+    owm = pyowm.OWM(minfo_settings.WEATHER_KEY)
+    weather_at = owm.weather_at_id(WEATHER_CITY_CODE)
+    weather = weather_at.get_weather()
+
+    description = weather.get_detailed_status()
+    temperature = int(weather.get_temperature(unit='celsius')['temp'])
+    wind_direction = int(weather.get_wind()['deg'])
+    wind_speed = weather.get_wind()['speed']
+    wind_speed = int((wind_speed * 60 * 60) / 1000)
+    pressure = int(weather.get_pressure()['press'])
+    humidity = weather.get_humidity()
+    sunrise = weather.get_sunrise_time(timeformat='date')
+    sunset = weather.get_sunset_time(timeformat='date')
+
+    weather_info = WeatherInfo(description,
+                               temperature,
+                               wind_direction,
+                               wind_speed,
+                               pressure,
+                               humidity,
+                               sunrise,
+                               sunset)
+    return weather_info
+
+
+if __name__ == '__main__':
+    """
+    Program to retrieve and display info from various sources
+    """
+    try:
+        args = get_args()
+        computer_info = get_computer_info()
+        weather_info = get_weather()
+        if args.c is True:
+            print("Computer status: [{}C] ".format(computer_info.cpu_temp))
+        elif args.w is True:
+            print(WEATHER_OUTPUT.format(weather_info.temperature,
+                                weather_info.wind_direction,
+                                weather_info.wind_speed,
+                                weather_info.description,
+                                weather_info.sunrise.time(),
+                                weather_info.sunset.time()))
+        else:
+            print("Computer status: [{}C] ".format(computer_info.cpu_temp))
+            print(WEATHER_OUTPUT.format(weather_info.temperature,
+                                weather_info.wind_direction,
+                                weather_info.wind_speed,
+                                weather_info.description,
+                                weather_info.sunrise.time(),
+                                weather_info.sunset.time()))
+    except (Exception, AttributeError):
+        print('Error getting d\'aul data')
