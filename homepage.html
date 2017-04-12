@@ -1,0 +1,106 @@
+<html>
+<head>
+	<title>Homepage</title>
+	<style type="text/css">
+		body {
+			background-attachment: fixed;
+			background-size: cover
+		}
+		.main_container {
+			width: 600px;
+			margin: auto;
+			/*background: black;*/
+			background: #003300;
+			/*opacity: 0.75;*/
+			opacity: 0.9;
+		}
+		.site_label {
+			font-family: "Trebuchet MS", Verdana, Arial, serif;
+		}
+		.site_button {
+		  color: white;
+			background: #00AA00;
+			/*border-radius: 5px;*/
+			/*border-color: #00FF00;*/
+			border: none;
+			margin-bottom: 5px;
+			margin-left: 5px;
+			margin-right: 5px;
+			width: 140px;
+		}
+		.panel_row {
+			margin: auto;
+			width: 600px;
+		}
+		.panel {
+		  color: white;
+			width: 150px;
+			margin: auto;
+			margin-top: 5px;
+			background: #005500;
+			font-family: "Trebuchet MS", Verdana, Arial, serif;
+			opacity: 1;
+			border-style: solid;
+			border-color: lightgreen;
+		}
+		.heading {
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+		.site_pad {
+			margin: 5px;
+		}
+	</style>
+
+	<script>
+
+		function set_background() {
+			var body = document.body;
+			var path = document.getElementById('background_path').value;
+			var url = "url('" + path + "')";
+			localStorage.setItem('backgroundimage', path);
+			document.body.style.backgroundImage = url;
+		}
+
+		function set_background_initial() {
+			var image_path = localStorage.getItem('backgroundimage');
+			var url = "url('" + image_path + "')";
+			document.body.style.backgroundImage = url;
+		}
+
+	</script>
+</head>
+<body onload="set_background_initial();">
+<div class="main_container">
+	<div class="panel" style="width: 595px;">
+		<div class="site_pad">
+			<label class="site_label">Background (File/URL): </label>
+			<input id="background_path" type="text"/>
+			<button class="site_button" style="width: 150;" onclick="set_background();">Set</button>
+		</div>
+	</div>
+	<script>
+		var bookmarks = [];
+
+		for(group_index in bookmarks){
+			// Parent object
+			var group = bookmarks[group_index];
+			document.write("<div class=\"panel\">");
+			document.write(
+					"<div><h5 class=\"heading\">" + group["group"] + "</h5></div>"
+			);
+			// Array of children
+			var marks = group["bookmarks"];
+			for(bookmark_index in marks){
+				var mark = marks[bookmark_index];
+				document.write(
+						"<div><button class=\"site_button\" onclick=\"window.open('"
+						+ mark["link"] + "')\">" + mark["name"] + "</button></div>"
+				);
+			}
+			document.write("</div>");
+		}
+	</script>
+</div>
+</body>
+</html>
